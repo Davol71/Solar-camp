@@ -5,5 +5,5 @@
   "display": "standalone",
   "background_color": "#07101d",
   "theme_color": "#08111f",
-  "description": "Repère le lever et le coucher du soleil selon votre position."
+  "description": "Repère lever, coucher, position actuelle et trajectoire du soleil."
 }
