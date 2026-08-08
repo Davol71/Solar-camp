@@ -1,0 +1,9 @@
+{
+  "name": "Soleil Camp",
+  "short_name": "Soleil Camp",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#111827",
+  "description": "Direction du lever et du coucher du soleil selon votre position."
+}
