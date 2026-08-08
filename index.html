@@ -1,325 +1,67 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="manifest.webmanifest">
-  <title>Soleil Camp</title>
-  <style>
-    :root{
-      --bg:#0b1020;
-      --card:#151c2f;
-      --text:#f8fafc;
-      --muted:#9ca3af;
-      --sunrise:#fbbf24;
-      --sunset:#fb7185;
-      --accent:#22c55e;
-      --line:rgba(255,255,255,.12);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      min-height:100vh;
-      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:
-        radial-gradient(circle at 20% 0%, rgba(251,191,36,.12), transparent 25%),
-        radial-gradient(circle at 80% 100%, rgba(251,113,133,.10), transparent 26%),
-        var(--bg);
-      color:var(--text);
-    }
-    .app{
-      width:min(100%,520px);
-      margin:auto;
-      min-height:100vh;
-      padding:calc(18px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-    }
-    header{display:flex;justify-content:space-between;align-items:center}
-    h1{font-size:24px;margin:0;letter-spacing:-.5px}
-    .badge{
-      font-size:12px;padding:7px 10px;border:1px solid var(--line);
-      border-radius:999px;color:var(--muted);background:rgba(255,255,255,.03)
-    }
-    .intro{color:var(--muted);font-size:14px;line-height:1.4;margin:0}
-    .card{
-      background:rgba(21,28,47,.88);
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:18px;
-      box-shadow:0 18px 50px rgba(0,0,0,.25);
-      backdrop-filter: blur(12px);
-    }
-    .times{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .timebox{padding:14px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid var(--line)}
-    .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-    .time{font-size:29px;font-weight:800;margin-top:4px}
-    .dir{font-size:15px;margin-top:4px;color:#d1d5db}
-    .sunrise .time,.sunrise .dir strong{color:var(--sunrise)}
-    .sunset .time,.sunset .dir strong{color:var(--sunset)}
-    .compass-wrap{display:grid;place-items:center;padding:8px 0 4px}
-    .compass{
-      width:min(78vw,360px);
-      aspect-ratio:1/1;
-      border-radius:50%;
-      position:relative;
-      border:2px solid rgba(255,255,255,.18);
-      background:
-        radial-gradient(circle, rgba(255,255,255,.025) 0 54%, transparent 55%),
-        repeating-conic-gradient(from 0deg, rgba(255,255,255,.16) 0 1deg, transparent 1deg 10deg);
-      box-shadow: inset 0 0 0 18px rgba(255,255,255,.02);
-    }
-    .compass::after{
-      content:"";
-      position:absolute;inset:18%;
-      border-radius:50%;
-      border:1px solid var(--line);
-    }
-    .cardinal{position:absolute;font-weight:800;font-size:15px;color:#e5e7eb;z-index:2}
-    .n{top:8px;left:50%;transform:translateX(-50%)}
-    .s{bottom:8px;left:50%;transform:translateX(-50%)}
-    .e{right:10px;top:50%;transform:translateY(-50%)}
-    .w{left:10px;top:50%;transform:translateY(-50%)}
-    .arrow{
-      position:absolute;left:50%;top:50%;
-      width:8px;height:39%;
-      transform-origin:50% 100%;
-      translate:-50% -100%;
-      border-radius:999px;
-      z-index:3;
-    }
-    .arrow::before{
-      content:"";
-      position:absolute;top:-10px;left:50%;transform:translateX(-50%);
-      border-left:9px solid transparent;border-right:9px solid transparent;
-    }
-    .arrow.rise{background:linear-gradient(to top,rgba(251,191,36,.2),var(--sunrise))}
-    .arrow.rise::before{border-bottom:14px solid var(--sunrise)}
-    .arrow.set{background:linear-gradient(to top,rgba(251,113,133,.2),var(--sunset))}
-    .arrow.set::before{border-bottom:14px solid var(--sunset)}
-    .center{
-      position:absolute;left:50%;top:50%;translate:-50% -50%;
-      width:22px;height:22px;border-radius:50%;background:white;z-index:5;
-      box-shadow:0 0 0 7px rgba(255,255,255,.11)
-    }
-    .heading{
-      margin-top:14px;text-align:center;font-size:14px;color:var(--muted)
-    }
-    .heading strong{color:white;font-size:21px}
-    button{
-      appearance:none;border:0;border-radius:16px;padding:15px 16px;font-weight:800;font-size:16px;
-      background:var(--accent);color:#06130a;width:100%;
-    }
-    button.secondary{background:#27324a;color:white;border:1px solid var(--line);margin-top:10px}
-    .status{font-size:13px;color:var(--muted);text-align:center;margin-top:10px;min-height:18px}
-    .legend{display:flex;justify-content:center;gap:18px;color:var(--muted);font-size:13px}
-    .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
-    .tip{font-size:14px;line-height:1.5;color:#d1d5db}
-    .tip strong{color:white}
-    .hidden{display:none}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08111f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Solar Camp</title>
+<style>
+:root{--bg:#07101d;--card:#111b2a;--text:#f8fafc;--muted:#9ba7b7;--line:rgba(255,255,255,.11);--rise:#f8c451;--set:#ff7b78;--accent:#8ee3a1}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:radial-gradient(circle at 50% -10%,rgba(248,196,81,.12),transparent 30%),radial-gradient(circle at 50% 110%,rgba(255,123,120,.10),transparent 30%),var(--bg);color:var(--text)}
+.app{width:min(100%,520px);margin:auto;min-height:100vh;padding:calc(18px + env(safe-area-inset-top)) 16px calc(26px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px}
+header{display:flex;justify-content:space-between;align-items:center}h1{margin:0;font-size:25px;letter-spacing:-.7px}.pill{font-size:12px;color:var(--muted);padding:7px 10px;border:1px solid var(--line);border-radius:999px}.sub{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
+.card{background:linear-gradient(180deg,rgba(17,27,42,.96),rgba(13,22,35,.96));border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 18px 45px rgba(0,0,0,.24)}
+.times{display:grid;grid-template-columns:1fr 1fr;gap:10px}.timebox{border:1px solid var(--line);border-radius:17px;padding:13px;background:rgba(255,255,255,.025)}.label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.time{font-size:28px;font-weight:800;margin-top:5px}.dir{font-size:14px;color:#d5dbe4;margin-top:5px}.rise .time,.rise .dir strong{color:var(--rise)}.set .time,.set .dir strong{color:var(--set)}
+.compass-stage{padding:14px 0 4px;display:grid;place-items:center}.compass{width:min(82vw,380px);aspect-ratio:1;border-radius:50%;position:relative;border:1px solid rgba(255,255,255,.2);background:radial-gradient(circle,transparent 0 56%,rgba(255,255,255,.025) 56% 57%,transparent 57%),repeating-conic-gradient(from 0deg,rgba(255,255,255,.18) 0deg 1deg,transparent 1deg 10deg);box-shadow:inset 0 0 0 16px rgba(255,255,255,.018);overflow:hidden}
+.dial{position:absolute;inset:0;transition:transform .08s linear}.cardinal{position:absolute;width:42px;height:42px;display:grid;place-items:center;font-weight:850;font-size:16px;border-radius:50%;background:rgba(7,16,29,.80);border:1px solid rgba(255,255,255,.08);z-index:3}.n{top:7px;left:50%;transform:translateX(-50%);color:#ff6f6f}.s{bottom:7px;left:50%;transform:translateX(-50%)}.e{right:7px;top:50%;transform:translateY(-50%)}.w{left:7px;top:50%;transform:translateY(-50%)}
+.minor{position:absolute;font-size:11px;color:var(--muted);font-weight:700}.ne{top:15%;right:17%}.se{bottom:15%;right:17%}.so{bottom:15%;left:17%}.no{top:15%;left:17%}
+.sun-arrow{position:absolute;left:50%;top:50%;width:8px;height:38%;transform-origin:50% 100%;translate:-50% -100%;border-radius:999px;z-index:5}.sun-arrow:before{content:"";position:absolute;top:-11px;left:50%;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent}.sun-arrow.rise{background:linear-gradient(to top,rgba(248,196,81,.12),var(--rise))}.sun-arrow.rise:before{border-bottom:14px solid var(--rise)}.sun-arrow.set{background:linear-gradient(to top,rgba(255,123,120,.12),var(--set))}.sun-arrow.set:before{border-bottom:14px solid var(--set)}
+.center{position:absolute;left:50%;top:50%;translate:-50% -50%;width:22px;height:22px;border-radius:50%;background:#fff;z-index:8;box-shadow:0 0 0 7px rgba(255,255,255,.11)}.device-index{position:absolute;top:4px;left:50%;translate:-50% 0;width:3px;height:23px;border-radius:999px;background:#fff;z-index:10}
+.legend{display:flex;justify-content:center;gap:18px;color:var(--muted);font-size:13px}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}.heading{text-align:center;color:var(--muted);font-size:13px;margin-top:11px}.heading strong{color:white;font-size:21px}
+button{width:100%;border:0;border-radius:16px;padding:15px 16px;font-size:16px;font-weight:800;background:var(--accent);color:#06160a}button.secondary{margin-top:10px;background:#223047;color:white;border:1px solid var(--line)}.status{text-align:center;color:var(--muted);font-size:13px;min-height:18px;margin-top:10px}.hidden{display:none}.note{font-size:13px;line-height:1.5;color:var(--muted)}.note strong{color:#e7edf5}
+</style>
 </head>
 <body>
-  <main class="app">
-    <header>
-      <h1>☀️ Soleil Camp</h1>
-      <span class="badge">GPS + boussole</span>
-    </header>
+<main class="app">
+<header><h1>☀️ Solar Camp</h1><span class="pill">Soleil + boussole</span></header>
+<p class="sub">Repère instantanément le lever et le coucher du soleil selon ta position et l’orientation réelle du téléphone.</p>
 
-    <p class="intro">Pose ton téléphone à plat : les flèches indiquent où le soleil se lève et où il se couche aujourd’hui.</p>
+<section class="card">
+<div class="times">
+<div class="timebox rise"><div class="label">Lever du soleil</div><div class="time" id="riseTime">--:--</div><div class="dir"><strong id="riseDeg">--°</strong> · <span id="riseText">--</span></div></div>
+<div class="timebox set"><div class="label">Coucher du soleil</div><div class="time" id="setTime">--:--</div><div class="dir"><strong id="setDeg">--°</strong> · <span id="setText">--</span></div></div>
+</div>
+<div class="compass-stage"><div class="compass">
+<div class="device-index"></div>
+<div class="dial" id="dial"><span class="cardinal n">N</span><span class="cardinal e">E</span><span class="cardinal s">S</span><span class="cardinal w">O</span><span class="minor ne">NE</span><span class="minor se">SE</span><span class="minor so">SO</span><span class="minor no">NO</span></div>
+<div class="sun-arrow rise" id="riseArrow"></div><div class="sun-arrow set" id="setArrow"></div><div class="center"></div>
+</div></div>
+<div class="legend"><span><i class="dot" style="background:var(--rise)"></i>Lever</span><span><i class="dot" style="background:var(--set)"></i>Coucher</span></div>
+<div class="heading">Direction du téléphone : <strong id="heading">--°</strong></div>
+</section>
 
-    <section class="card">
-      <div class="times">
-        <div class="timebox sunrise">
-          <div class="label">Lever</div>
-          <div class="time" id="riseTime">--:--</div>
-          <div class="dir"><strong id="riseDeg">--°</strong> · <span id="riseText">--</span></div>
-        </div>
-        <div class="timebox sunset">
-          <div class="label">Coucher</div>
-          <div class="time" id="setTime">--:--</div>
-          <div class="dir"><strong id="setDeg">--°</strong> · <span id="setText">--</span></div>
-        </div>
-      </div>
-
-      <div class="compass-wrap">
-        <div class="compass" id="compass">
-          <span class="cardinal n">N</span><span class="cardinal e">E</span>
-          <span class="cardinal s">S</span><span class="cardinal w">O</span>
-          <div class="arrow rise" id="riseArrow"></div>
-          <div class="arrow set" id="setArrow"></div>
-          <div class="center"></div>
-        </div>
-      </div>
-
-      <div class="legend">
-        <span><i class="dot" style="background:var(--sunrise)"></i>Lever</span>
-        <span><i class="dot" style="background:var(--sunset)"></i>Coucher</span>
-      </div>
-
-      <div class="heading">Orientation du téléphone : <strong id="heading">--°</strong></div>
-    </section>
-
-    <section class="card">
-      <button id="startBtn">📍 Utiliser ma position</button>
-      <button class="secondary hidden" id="compassBtn">🧭 Activer la boussole</button>
-      <div class="status" id="status">Aucune position utilisée.</div>
-    </section>
-
-    <section class="card tip">
-      <strong>Astuce tente :</strong> pour avoir le soleil du matin sur l’entrée, oriente-la vers la flèche jaune. Pour éviter le soleil du réveil, place plutôt l’entrée à l’opposé.
-    </section>
-  </main>
+<section class="card"><button id="locBtn">📍 Utiliser ma position</button><button class="secondary hidden" id="compassBtn">🧭 Activer la boussole</button><div class="status" id="status">Aucune position utilisée.</div></section>
+<section class="card note"><strong>Boussole réelle :</strong> le repère blanc en haut indique la direction vers laquelle pointe ton téléphone. Le cadran N / E / S / O tourne pour rester aligné avec les vrais points cardinaux.</section>
+</main>
 
 <script>
-const $ = id => document.getElementById(id);
-let sunriseAz = null, sunsetAz = null, heading = 0;
-
-function rad(d){ return d*Math.PI/180 }
-function deg(r){ return r*180/Math.PI }
-function norm(a){ return (a%360+360)%360 }
-
-function julianDate(date){
-  return date.getTime()/86400000 + 2440587.5;
-}
-function solarCoords(date){
-  const jd = julianDate(date);
-  const n = jd - 2451545.0;
-  const L = norm(280.460 + 0.9856474*n);
-  const g = norm(357.528 + 0.9856003*n);
-  const lambda = norm(L + 1.915*Math.sin(rad(g)) + 0.020*Math.sin(rad(2*g)));
-  const eps = 23.439 - 0.0000004*n;
-  const ra = norm(deg(Math.atan2(Math.cos(rad(eps))*Math.sin(rad(lambda)), Math.cos(rad(lambda)))));
-  const dec = deg(Math.asin(Math.sin(rad(eps))*Math.sin(rad(lambda))));
-  return {ra, dec};
-}
-function gmst(date){
-  const jd = julianDate(date);
-  const d = jd - 2451545.0;
-  return norm(280.46061837 + 360.98564736629*d);
-}
-function solarAltAz(date, lat, lon){
-  const {ra, dec} = solarCoords(date);
-  const lst = norm(gmst(date) + lon);
-  const H = norm(lst - ra);
-  const Hs = H > 180 ? H - 360 : H;
-  const alt = deg(Math.asin(
-    Math.sin(rad(lat))*Math.sin(rad(dec)) +
-    Math.cos(rad(lat))*Math.cos(rad(dec))*Math.cos(rad(Hs))
-  ));
-  const az = norm(deg(Math.atan2(
-    Math.sin(rad(Hs)),
-    Math.cos(rad(Hs))*Math.sin(rad(lat)) - Math.tan(rad(dec))*Math.cos(rad(lat))
-  )) + 180);
-  return {alt, az};
-}
-
-// Recherche binaire du passage à -0,833° (réfraction + rayon solaire)
-function findSunEvent(date, lat, lon, rising){
-  const start = new Date(date); start.setHours(0,0,0,0);
-  const threshold = -0.833;
-  let prevT = start.getTime();
-  let prevAlt = solarAltAz(new Date(prevT),lat,lon).alt - threshold;
-  let bracket = null;
-  for(let i=1;i<=144;i++){
-    const t = start.getTime() + i*10*60*1000;
-    const alt = solarAltAz(new Date(t),lat,lon).alt - threshold;
-    if((rising && prevAlt<0 && alt>=0) || (!rising && prevAlt>=0 && alt<0)){
-      bracket=[prevT,t]; break;
-    }
-    prevT=t; prevAlt=alt;
-  }
-  if(!bracket) return null;
-  let [a,b]=bracket;
-  for(let i=0;i<30;i++){
-    const m=(a+b)/2;
-    const val=solarAltAz(new Date(m),lat,lon).alt-threshold;
-    if(rising){
-      if(val>=0)b=m; else a=m;
-    }else{
-      if(val<0)b=m; else a=m;
-    }
-  }
-  const t=new Date((a+b)/2);
-  const az=solarAltAz(t,lat,lon).az;
-  return {time:t, az};
-}
-function compassName(a){
-  const names=["N","NE","E","SE","S","SO","O","NO"];
-  return names[Math.round(norm(a)/45)%8];
-}
-function fmtTime(d){
-  return d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
-}
-function updateArrows(){
-  if(sunriseAz===null) return;
-  $("riseArrow").style.transform=`rotate(${norm(sunriseAz-heading)}deg)`;
-  $("setArrow").style.transform=`rotate(${norm(sunsetAz-heading)}deg)`;
-}
-function useLocation(){
-  if(!navigator.geolocation){
-    $("status").textContent="La géolocalisation n'est pas disponible sur cet appareil.";
-    return;
-  }
-  $("status").textContent="Recherche de ta position…";
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const {latitude:lat, longitude:lon, accuracy}=pos.coords;
-    const today=new Date();
-    const rise=findSunEvent(today,lat,lon,true);
-    const set=findSunEvent(today,lat,lon,false);
-    if(!rise || !set){
-      $("status").textContent="Impossible de calculer lever/coucher pour cette date et cette latitude.";
-      return;
-    }
-    sunriseAz=rise.az; sunsetAz=set.az;
-    $("riseTime").textContent=fmtTime(rise.time);
-    $("setTime").textContent=fmtTime(set.time);
-    $("riseDeg").textContent=Math.round(rise.az)+"°";
-    $("setDeg").textContent=Math.round(set.az)+"°";
-    $("riseText").textContent=compassName(rise.az);
-    $("setText").textContent=compassName(set.az);
-    $("status").textContent=`Position trouvée · précision env. ${Math.round(accuracy)} m`;
-    $("compassBtn").classList.remove("hidden");
-    updateArrows();
-  },err=>{
-    $("status").textContent="Position refusée ou indisponible. Autorise la localisation dans le navigateur.";
-  },{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
-}
-function handleOrientation(e){
-  let h=null;
-  if(typeof e.webkitCompassHeading==="number") h=e.webkitCompassHeading;
-  else if(e.absolute && typeof e.alpha==="number") h=360-e.alpha;
-  else if(typeof e.alpha==="number") h=360-e.alpha;
-  if(h!==null && !isNaN(h)){
-    heading=norm(h);
-    $("heading").textContent=Math.round(heading)+"°";
-    updateArrows();
-  }
-}
-async function enableCompass(){
-  try{
-    if(typeof DeviceOrientationEvent!=="undefined" &&
-       typeof DeviceOrientationEvent.requestPermission==="function"){
-      const p=await DeviceOrientationEvent.requestPermission();
-      if(p!=="granted") throw new Error("permission");
-    }
-    window.addEventListener("deviceorientationabsolute",handleOrientation,true);
-    window.addEventListener("deviceorientation",handleOrientation,true);
-    $("status").textContent="Boussole activée. Tiens le téléphone à plat.";
-  }catch(e){
-    $("status").textContent="Boussole non autorisée. Active l’accès aux mouvements/orientation dans les réglages.";
-  }
-}
-$("startBtn").addEventListener("click",useLocation);
-$("compassBtn").addEventListener("click",enableCompass);
-
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-}
+const $=id=>document.getElementById(id);let sunriseAz=null,sunsetAz=null,heading=0;
+const rad=d=>d*Math.PI/180,deg=r=>r*180/Math.PI,norm=a=>(a%360+360)%360;
+function julianDate(date){return date.getTime()/86400000+2440587.5}
+function solarCoords(date){const jd=julianDate(date),n=jd-2451545,L=norm(280.460+0.9856474*n),g=norm(357.528+0.9856003*n),lambda=norm(L+1.915*Math.sin(rad(g))+0.020*Math.sin(rad(2*g))),eps=23.439-0.0000004*n,ra=norm(deg(Math.atan2(Math.cos(rad(eps))*Math.sin(rad(lambda)),Math.cos(rad(lambda))))),dec=deg(Math.asin(Math.sin(rad(eps))*Math.sin(rad(lambda))));return{ra,dec}}
+function gmst(date){const d=julianDate(date)-2451545;return norm(280.46061837+360.98564736629*d)}
+function solarAltAz(date,lat,lon){const{ra,dec}=solarCoords(date),lst=norm(gmst(date)+lon),H=norm(lst-ra),Hs=H>180?H-360:H,alt=deg(Math.asin(Math.sin(rad(lat))*Math.sin(rad(dec))+Math.cos(rad(lat))*Math.cos(rad(dec))*Math.cos(rad(Hs)))),az=norm(deg(Math.atan2(Math.sin(rad(Hs)),Math.cos(rad(Hs))*Math.sin(rad(lat))-Math.tan(rad(dec))*Math.cos(rad(lat))))+180);return{alt,az}}
+function findSunEvent(date,lat,lon,rising){const start=new Date(date);start.setHours(0,0,0,0);const threshold=-.833;let prevT=start.getTime(),prevAlt=solarAltAz(new Date(prevT),lat,lon).alt-threshold,bracket=null;for(let i=1;i<=144;i++){const t=start.getTime()+i*600000,alt=solarAltAz(new Date(t),lat,lon).alt-threshold;if((rising&&prevAlt<0&&alt>=0)||(!rising&&prevAlt>=0&&alt<0)){bracket=[prevT,t];break}prevT=t;prevAlt=alt}if(!bracket)return null;let[a,b]=bracket;for(let i=0;i<30;i++){const m=(a+b)/2,val=solarAltAz(new Date(m),lat,lon).alt-threshold;if(rising){if(val>=0)b=m;else a=m}else{if(val<0)b=m;else a=m}}const time=new Date((a+b)/2);return{time,az:solarAltAz(time,lat,lon).az}}
+function compassName(a){return["N","NE","E","SE","S","SO","O","NO"][Math.round(norm(a)/45)%8]}
+function fmtTime(d){return d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
+function updateCompass(){$("dial").style.transform=`rotate(${-heading}deg)`;if(sunriseAz!==null){$("riseArrow").style.transform=`rotate(${norm(sunriseAz-heading)}deg)`;$("setArrow").style.transform=`rotate(${norm(sunsetAz-heading)}deg)`}$("heading").textContent=Math.round(heading)+"°"}
+function useLocation(){if(!navigator.geolocation){$("status").textContent="Géolocalisation indisponible.";return}$("status").textContent="Recherche de ta position…";navigator.geolocation.getCurrentPosition(pos=>{const{latitude:lat,longitude:lon,accuracy}=pos.coords,today=new Date(),rise=findSunEvent(today,lat,lon,true),set=findSunEvent(today,lat,lon,false);if(!rise||!set){$("status").textContent="Calcul impossible pour cette position.";return}sunriseAz=rise.az;sunsetAz=set.az;$("riseTime").textContent=fmtTime(rise.time);$("setTime").textContent=fmtTime(set.time);$("riseDeg").textContent=Math.round(rise.az)+"°";$("setDeg").textContent=Math.round(set.az)+"°";$("riseText").textContent=compassName(rise.az);$("setText").textContent=compassName(set.az);$("status").textContent=`Position trouvée · précision env. ${Math.round(accuracy)} m`;$("compassBtn").classList.remove("hidden");updateCompass()},()=>{$("status").textContent="Position refusée ou indisponible."},{enableHighAccuracy:true,timeout:12000,maximumAge:60000})}
+function handleOrientation(e){let h=null;if(typeof e.webkitCompassHeading==="number")h=e.webkitCompassHeading;else if(typeof e.alpha==="number")h=360-e.alpha;if(h!==null&&!isNaN(h)){heading=norm(h);updateCompass()}}
+async function enableCompass(){try{if(typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){const p=await DeviceOrientationEvent.requestPermission();if(p!=="granted")throw new Error()}window.addEventListener("deviceorientationabsolute",handleOrientation,true);window.addEventListener("deviceorientation",handleOrientation,true);$("status").textContent="Boussole activée. Tiens le téléphone à plat."}catch(e){$("status").textContent="Boussole non autorisée. Vérifie les permissions du navigateur."}}
+$("locBtn").addEventListener("click",useLocation);$("compassBtn").addEventListener("click",enableCompass);
+if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 </script>
 </body>
 </html>
