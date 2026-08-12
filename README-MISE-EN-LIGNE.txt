@@ -11,3 +11,5 @@ AZIMUT — MISE EN LIGNE GITHUB PAGES
 Important :
 - Après changement de nom, vérifie Settings > Pages et attends le nouveau déploiement.
 - Sur iPhone, si l’ancienne icône est installée, supprime-la puis ajoute de nouveau Azimut depuis Safari.
+
+NOUVEAUTÉ V7 : bouton « Mode terrain plein écran » après localisation GPS.

@@ -267,6 +267,64 @@ header{gap:12px}
   background:rgba(142,227,161,.1);color:var(--accent);font-size:11px;font-weight:800
 }
 
+
+/* Mode terrain plein écran */
+.focusBtn{
+  margin-top:10px;background:#223047;color:white;border:1px solid var(--line)
+}
+.focusHud{display:none}
+.focusInfo{min-width:0}
+.focusPlace{
+  font-size:18px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.focusMeta{font-size:12px;color:var(--muted);margin-top:3px}
+.focusExit{
+  width:42px;height:42px;padding:0;display:grid;place-items:center;flex:0 0 auto;
+  border-radius:50%;background:rgba(255,255,255,.08);color:white;border:1px solid var(--line);
+  font-size:19px
+}
+body.focusMode{overflow:hidden;background:#030812}
+body.focusMode .app{padding:0;max-width:none;width:100%;min-height:100vh}
+body.focusMode .app > header,
+body.focusMode .app > .sub,
+body.focusMode .app > section:not(#solarCard),
+body.focusMode .app > footer{display:none!important}
+body.focusMode #solarCard{
+  position:fixed;inset:0;z-index:2050;width:100%;height:100%;
+  max-width:none;margin:0;border:0;border-radius:0;box-shadow:none;
+  padding:calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 50% 38%,rgba(255,216,77,.07),transparent 32%),
+    #050c16;
+  display:flex;flex-direction:column;justify-content:space-between
+}
+body.focusMode #solarCard .focusHud{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px
+}
+body.focusMode #solarCard > .place,
+body.focusMode #solarCard > .times,
+body.focusMode #solarCard > .currentSun,
+body.focusMode #solarCard > .explorer{display:none!important}
+body.focusMode #solarCard .compass-stage{
+  flex:1;min-height:0;padding:8px 0;display:flex;align-items:center;justify-content:center
+}
+body.focusMode #solarCard .compass{
+  width:min(92vw,72vh,640px);
+  box-shadow:inset 0 0 0 18px rgba(255,255,255,.018),0 22px 65px rgba(0,0,0,.34)
+}
+body.focusMode #solarCard .cardinal{width:48px;height:48px;font-size:18px}
+body.focusMode #solarCard .minor{font-size:12px}
+body.focusMode #solarCard .legend{font-size:12px;margin-top:0}
+body.focusMode #solarCard .heading{margin:7px 0 0;font-size:12px}
+body.focusMode #solarCard .heading strong{font-size:18px}
+body.focusMode #solarCard .sun-now{
+  box-shadow:0 0 0 7px rgba(255,216,77,.14),0 0 34px rgba(255,216,77,.52)
+}
+@media (orientation:landscape){
+  body.focusMode #solarCard{padding-left:calc(14px + env(safe-area-inset-left));padding-right:calc(14px + env(safe-area-inset-right))}
+  body.focusMode #solarCard .compass{width:min(62vw,72vh,590px)}
+}
+
 </style>
 </head>
 <body>
@@ -290,7 +348,14 @@ header{gap:12px}
 </header>
 <p class="sub">Repère le soleil autour de toi : lever, coucher, position actuelle et trajectoire de la journée.</p>
 
-<section class="card">
+<section class="card" id="solarCard">
+  <div class="focusHud" id="focusHud">
+    <div class="focusInfo">
+      <div class="focusPlace" id="focusPlace">Azimut</div>
+      <div class="focusMeta" id="focusMeta">--:-- · Soleil --°</div>
+    </div>
+    <button class="focusExit" id="focusExit" type="button">✕</button>
+  </div>
   <div class="place">
     <div class="placeIcon">📍</div>
     <div class="placeText">
@@ -384,6 +449,7 @@ header{gap:12px}
   <button id="locBtn">📍 Utiliser ma position</button>
   <button class="secondary hidden" id="compassBtn">🧭 Activer la boussole</button>
   <button class="arBtn hidden" id="arBtn">📷 Vue AR du soleil</button>
+  <button class="focusBtn hidden" id="focusBtn" type="button">🧭 Mode terrain plein écran</button>
   <div class="status" id="status">Aucune position utilisée.</div>
 </section>
 
@@ -396,7 +462,7 @@ header{gap:12px}
     <button class="linkBtn" id="installFooterBtn" type="button">Installer Azimut</button>
     <button class="linkBtn" id="privacyBtn" type="button">Confidentialité</button>
   </div>
-  <div>Azimut · Boussole solaire · v1.0</div>
+  <div>Azimut · Boussole solaire · v1.1</div>
 </footer>
 </main>
 
@@ -635,7 +701,8 @@ function updateSelectedSun(){
   if(s.alt>-1)$("sunNow").classList.remove("hiddenSun");
   else $("sunNow").classList.add("hiddenSun");
   updateCompass();
-  if(arActive)updateAR()
+  if(arActive)updateAR();
+  if(document.body.classList.contains("focusMode"))updateFocusHud()
 }
 
 function signedAngle(a){let d=norm(a);return d>180?d-360:d}
@@ -753,10 +820,12 @@ async function resolvePlace(lat,lon){
     const locality=d.locality||d.city||d.principalSubdivision||"Lieu détecté";
     const region=d.principalSubdivision||d.countryName||"";
     $("placeName").textContent=locality;
-    $("placeMeta").textContent=region&&region!==locality?region:`${lat.toFixed(4)}, ${lon.toFixed(4)}`
+    $("placeMeta").textContent=region&&region!==locality?region:`${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    if(document.body.classList.contains("focusMode"))updateFocusHud()
   }catch(e){
     $("placeName").textContent="Position détectée";
-    $("placeMeta").textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)}`
+    $("placeMeta").textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    if(document.body.classList.contains("focusMode"))updateFocusHud()
   }
 }
 function resetToNow(){
@@ -768,16 +837,53 @@ function resetToNow(){
     $("selectedTime").textContent=fmtTime(now)
   }
 }
+
+function updateFocusHud(){
+  const place=$("placeName")?.textContent||"Azimut";
+  const time=$("selectedTime")?.textContent||"--:--";
+  const alt=Number.isFinite(selectedSunAlt)?`${Math.round(selectedSunAlt)}°`:"--°";
+  const az=Number.isFinite(selectedSunAz)?`${Math.round(selectedSunAz)}° ${compassName(selectedSunAz)}`:"--";
+  if($("focusPlace"))$("focusPlace").textContent=place;
+  if($("focusMeta"))$("focusMeta").textContent=`${time} · Soleil ${az} · hauteur ${alt}`;
+}
+async function enterFocusMode(){
+  if(currentLat===null){
+    $("status").textContent="Utilise d’abord ta position.";
+    return
+  }
+  try{
+    await requestOrientationPermission();
+  }catch(e){
+    // Le mode reste utilisable même sans boussole active.
+  }
+  updateFocusHud();
+  document.body.classList.add("focusMode");
+  window.scrollTo(0,0);
+  try{
+    if(document.documentElement.requestFullscreen && !document.fullscreenElement){
+      await document.documentElement.requestFullscreen();
+    }
+  }catch(e){}
+}
+async function exitFocusMode(){
+  document.body.classList.remove("focusMode");
+  try{
+    if(document.fullscreenElement && document.exitFullscreen)await document.exitFullscreen();
+  }catch(e){}
+}
+
 function useLocation(){
   if(!navigator.geolocation){$("status").textContent="Géolocalisation indisponible.";return}
   $("status").textContent="Recherche de ta position…";
   navigator.geolocation.getCurrentPosition(async pos=>{
     const{latitude:lat,longitude:lon,accuracy}=pos.coords;
     currentLat=lat;currentLon=lon;
-    resetToNow();
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("focusMode"))exitFocusMode()});
+
+resetToNow();
     await resolvePlace(lat,lon);
     $("status").textContent=`Position trouvée · précision env. ${Math.round(accuracy)} m`;
-    $("compassBtn").classList.remove("hidden");$("arBtn").classList.remove("hidden")
+    $("compassBtn").classList.remove("hidden");$("arBtn").classList.remove("hidden");$("focusBtn").classList.remove("hidden")
   },()=>{$("status").textContent="Position refusée ou indisponible."},
   {enableHighAccuracy:true,timeout:12000,maximumAge:60000})
 }
@@ -814,11 +920,13 @@ refreshInstallUI();
 $("locBtn").addEventListener("click",useLocation);
 $("compassBtn").addEventListener("click",enableCompass);
 $("arBtn").addEventListener("click",startAR);
+$("focusBtn").addEventListener("click",enterFocusMode);
+$("focusExit").addEventListener("click",exitFocusMode);
 $("arClose").addEventListener("click",stopAR);
 $("arCalibrate").addEventListener("click",calibrateAR);
 $("nowBtn").addEventListener("click",resetToNow);
-$("datePicker").addEventListener("change",()=>{updateDayData();if(arActive)updateAR()});
-$("timeSlider").addEventListener("input",()=>{updateSelectedSun();if(arActive)updateAR()});
+$("datePicker").addEventListener("change",()=>{updateDayData();if(arActive)updateAR();updateFocusHud()});
+$("timeSlider").addEventListener("input",()=>{updateSelectedSun();if(arActive)updateAR();updateFocusHud()});
 
 resetToNow();
 
