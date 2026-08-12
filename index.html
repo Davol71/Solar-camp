@@ -6,6 +6,10 @@
 <meta name="theme-color" content="#08111f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Azimut">
+<meta name="application-name" content="Azimut">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Azimut — boussole solaire avec trajectoire, date, heure et vue AR.">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -183,11 +187,107 @@ input[type="range"]{width:100%;accent-color:var(--sun)}
 .arCalibrate{width:100%;padding:12px 14px;border-radius:14px;background:rgba(6,12,20,.78);color:white;border:1px solid rgba(255,255,255,.18);font-size:14px}
 .arHelp{text-align:center;color:rgba(255,255,255,.78);font-size:11px;text-shadow:0 1px 4px #000}
 
+
+/* Branding / finition V6 */
+header{gap:12px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brandIcon{
+  width:38px;height:38px;border-radius:10px;display:block;flex:0 0 auto;
+  box-shadow:0 8px 22px rgba(0,0,0,.26)
+}
+.brandText{min-width:0}
+.brandText h1{line-height:1}
+.brandSub{margin-top:4px;color:var(--muted);font-size:11px;letter-spacing:.03em}
+.installTop{
+  width:auto;flex:0 0 auto;padding:9px 11px;border-radius:12px;
+  background:#223047;color:white;border:1px solid var(--line);font-size:12px
+}
+.footer{
+  padding:6px 4px 2px;text-align:center;color:var(--muted);font-size:11px;line-height:1.5
+}
+.footerActions{display:flex;justify-content:center;gap:8px;margin-bottom:6px}
+.linkBtn{
+  width:auto;padding:7px 9px;border-radius:10px;background:transparent;color:#cfd7e4;
+  border:1px solid var(--line);font-size:11px
+}
+
+/* Splash */
+.splash{
+  position:fixed;inset:0;z-index:3000;background:
+    radial-gradient(circle at 50% 35%,rgba(248,196,81,.12),transparent 28%),#07101d;
+  display:grid;place-items:center;transition:opacity .35s ease,visibility .35s ease
+}
+.splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splashInner{text-align:center;transform:translateY(-3vh)}
+.splashIcon{
+  width:104px;height:104px;border-radius:26px;box-shadow:0 24px 60px rgba(0,0,0,.36)
+}
+.splashTitle{font-size:34px;font-weight:900;letter-spacing:-1px;margin-top:18px}
+.splashTag{color:var(--muted);font-size:13px;margin-top:6px}
+
+/* Modales */
+.modalBackdrop{
+  position:fixed;inset:0;z-index:2200;background:rgba(0,0,0,.66);
+  display:none;align-items:flex-end;justify-content:center;padding:14px
+}
+.modalBackdrop.open{display:flex}
+.sheet{
+  width:min(100%,520px);max-height:84vh;overflow:auto;background:#111b2a;
+  border:1px solid rgba(255,255,255,.13);border-radius:24px;
+  padding:18px;box-shadow:0 28px 90px rgba(0,0,0,.46)
+}
+.sheetHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.sheetHead h2{margin:0;font-size:21px;letter-spacing:-.4px}
+.closeSheet{
+  width:auto;padding:8px 10px;border-radius:12px;background:#223047;color:white;
+  border:1px solid var(--line);font-size:13px
+}
+.installHero{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+.installHero img{width:58px;height:58px;border-radius:15px}
+.installHero strong{display:block;font-size:17px}
+.installHero span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.steps{display:grid;gap:9px;margin:13px 0}
+.step{
+  display:flex;gap:11px;align-items:flex-start;padding:11px;border-radius:15px;
+  border:1px solid var(--line);background:rgba(255,255,255,.025)
+}
+.stepNum{
+  width:27px;height:27px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
+  background:rgba(255,216,77,.13);color:var(--sun);font-weight:850;font-size:12px
+}
+.stepText{font-size:13px;line-height:1.45;color:#d9e0ea}
+.sheetNote{font-size:12px;line-height:1.5;color:var(--muted)}
+.privacyBlock{
+  padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.55;color:#d9e0ea
+}
+.privacyBlock:last-child{border-bottom:0}
+.privacyBlock strong{display:block;color:white;margin-bottom:3px}
+.installedBadge{
+  display:inline-block;padding:6px 9px;border-radius:999px;
+  background:rgba(142,227,161,.1);color:var(--accent);font-size:11px;font-weight:800
+}
+
 </style>
 </head>
 <body>
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="splashInner">
+    <img class="splashIcon" src="icon-512.png" alt="">
+    <div class="splashTitle">Azimut</div>
+    <div class="splashTag">Le soleil, exactement où tu le cherches.</div>
+  </div>
+</div>
 <main class="app">
-<header><h1>Azimut</h1><span class="pill">Soleil + boussole</span></header>
+<header>
+  <div class="brand">
+    <img class="brandIcon" src="apple-touch-icon.png" alt="">
+    <div class="brandText">
+      <h1>Azimut</h1>
+      <div class="brandSub">Boussole solaire</div>
+    </div>
+  </div>
+  <button class="installTop" id="installBtn" type="button">Installer</button>
+</header>
 <p class="sub">Repère le soleil autour de toi : lever, coucher, position actuelle et trajectoire de la journée.</p>
 
 <section class="card">
@@ -291,7 +391,63 @@ input[type="range"]{width:100%;accent-color:var(--sun)}
   <strong>Trajectoire :</strong> l’arc pointillé montre le chemin du soleil entre son lever et son coucher.
   Le point ☀️ indique la position du soleil à l’heure choisie sur cette trajectoire.
 </section>
+<footer class="footer">
+  <div class="footerActions">
+    <button class="linkBtn" id="installFooterBtn" type="button">Installer Azimut</button>
+    <button class="linkBtn" id="privacyBtn" type="button">Confidentialité</button>
+  </div>
+  <div>Azimut · Boussole solaire · v1.0</div>
+</footer>
 </main>
+
+
+<div class="modalBackdrop" id="installModal" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="installTitle">
+    <div class="sheetHead">
+      <h2 id="installTitle">Installer Azimut</h2>
+      <button class="closeSheet" data-close="installModal" type="button">Fermer</button>
+    </div>
+    <div class="installHero">
+      <img src="apple-touch-icon.png" alt="">
+      <div>
+        <strong>Azimut sur l’écran d’accueil</strong>
+        <span id="installStatus">Accès rapide, plein écran, comme une app.</span>
+      </div>
+    </div>
+    <div class="steps" id="iosInstallSteps">
+      <div class="step"><div class="stepNum">1</div><div class="stepText">Ouvre Azimut dans <strong>Safari</strong>.</div></div>
+      <div class="step"><div class="stepNum">2</div><div class="stepText">Appuie sur le bouton <strong>Partager</strong> de Safari.</div></div>
+      <div class="step"><div class="stepNum">3</div><div class="stepText">Choisis <strong>Sur l’écran d’accueil</strong>, puis <strong>Ajouter</strong>.</div></div>
+    </div>
+    <button id="nativeInstallBtn" class="hidden" type="button">Installer maintenant</button>
+    <div class="sheetNote" id="installNote">Une fois ajoutée, Azimut s’ouvrira sans la barre de navigation de Safari et utilisera son icône dédiée.</div>
+  </div>
+</div>
+
+<div class="modalBackdrop" id="privacyModal" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="privacyTitle">
+    <div class="sheetHead">
+      <h2 id="privacyTitle">Confidentialité</h2>
+      <button class="closeSheet" data-close="privacyModal" type="button">Fermer</button>
+    </div>
+    <div class="privacyBlock">
+      <strong>📍 Localisation</strong>
+      Elle sert à calculer le lever, le coucher, l’azimut, la hauteur et la trajectoire du soleil.
+    </div>
+    <div class="privacyBlock">
+      <strong>📷 Caméra et capteurs</strong>
+      La caméra, la boussole et l’orientation sont utilisées uniquement pour la vue AR et l’affichage de la boussole.
+    </div>
+    <div class="privacyBlock">
+      <strong>🌍 Nom du lieu</strong>
+      Pour afficher le nom de la ville, la position est envoyée au service de géocodage utilisé par Azimut. Si ce service est indisponible, seules les coordonnées sont affichées.
+    </div>
+    <div class="privacyBlock">
+      <strong>🔒 Données</strong>
+      Azimut ne contient ni compte utilisateur, ni publicité, ni système d’analyse d’audience. Les calculs solaires sont effectués directement dans l’application.
+    </div>
+  </div>
+</div>
 
 <div class="arOverlay" id="arOverlay" aria-hidden="true">
   <video class="arVideo" id="arVideo" autoplay playsinline muted></video>
@@ -321,6 +477,47 @@ input[type="range"]{width:100%;accent-color:var(--sun)}
 
 <script>
 const $=id=>document.getElementById(id);
+
+let deferredInstallPrompt=null;
+
+function isStandalone(){
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true
+}
+function openModal(id){
+  const el=$(id); if(!el)return;
+  el.classList.add("open"); el.setAttribute("aria-hidden","false"); document.body.style.overflow="hidden"
+}
+function closeModal(id){
+  const el=$(id); if(!el)return;
+  el.classList.remove("open"); el.setAttribute("aria-hidden","true");
+  if(!arActive)document.body.style.overflow=""
+}
+function refreshInstallUI(){
+  const installed=isStandalone();
+  const top=$("installBtn"), footer=$("installFooterBtn"), status=$("installStatus");
+  if(installed){
+    if(top){top.textContent="Installée";top.disabled=true}
+    if(footer){footer.textContent="Azimut est installée";footer.disabled=true}
+    if(status)status.innerHTML='<span class="installedBadge">Azimut est déjà installée</span>'
+  }
+}
+async function showInstall(){
+  if(isStandalone())return;
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    try{await deferredInstallPrompt.userChoice}catch(e){}
+    deferredInstallPrompt=null;
+    refreshInstallUI();
+    return
+  }
+  openModal("installModal")
+}
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();deferredInstallPrompt=e
+});
+window.addEventListener("appinstalled",()=>refreshInstallUI());
+
+
 let sunriseAz=null,sunsetAz=null,heading=0,currentLat=null,currentLon=null;
 let selectedSunAz=null,selectedSunAlt=null,selectedDateTime=new Date();
 let deviceBeta=90, arActive=false, arStream=null, arHorizonOffset=0, orientationListening=false;
@@ -601,6 +798,18 @@ async function enableCompass(){
     $("status").textContent="Boussole non autorisée. Vérifie les permissions du navigateur."
   }
 }
+
+
+$("installBtn").addEventListener("click",showInstall);
+$("installFooterBtn").addEventListener("click",showInstall);
+$("privacyBtn").addEventListener("click",()=>openModal("privacyModal"));
+$("nativeInstallBtn").addEventListener("click",showInstall);
+document.querySelectorAll("[data-close]").forEach(btn=>btn.addEventListener("click",()=>closeModal(btn.dataset.close)));
+document.querySelectorAll(".modalBackdrop").forEach(backdrop=>backdrop.addEventListener("click",e=>{
+  if(e.target===backdrop)closeModal(backdrop.id)
+}));
+setTimeout(()=>$("splash")?.classList.add("hide"),750);
+refreshInstallUI();
 
 $("locBtn").addEventListener("click",useLocation);
 $("compassBtn").addEventListener("click",enableCompass);
