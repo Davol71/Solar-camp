@@ -161,6 +161,28 @@ input[type="range"]{width:100%;accent-color:var(--sun)}
 }
 .modeHint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35}
 
+
+/* Vue AR */
+.arBtn{margin-top:10px;background:linear-gradient(135deg,#ffd84d,#f5b942);color:#221800}
+.arOverlay{position:fixed;inset:0;z-index:1000;background:#000;display:none;overflow:hidden}
+.arOverlay.active{display:block}
+.arVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.arShade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25),transparent 25%,transparent 72%,rgba(0,0,0,.38));pointer-events:none}
+.arCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.arTop{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:3}
+.arChip{background:rgba(6,12,20,.72);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:9px 11px;color:white;font-size:12px}
+.arClose{width:auto;padding:10px 13px;border-radius:14px;background:rgba(6,12,20,.78);color:white;border:1px solid rgba(255,255,255,.18);font-size:14px}
+.arCenterMark{position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);z-index:3;pointer-events:none}
+.arCenterMark:before,.arCenterMark:after{content:"";position:absolute;background:rgba(255,255,255,.8)}
+.arCenterMark:before{width:22px;height:1px;left:0;top:10px}.arCenterMark:after{width:1px;height:22px;left:10px;top:0}
+.arSun{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:var(--sun);box-shadow:0 0 0 7px rgba(255,216,77,.18),0 0 38px rgba(255,216,77,.62);display:grid;place-items:center;font-size:29px;z-index:4;pointer-events:none;transition:left .08s linear,top .08s linear}
+.arSun.offscreen{display:none}
+.arBottom{position:absolute;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:3;display:grid;gap:8px}
+.arInfo{display:flex;justify-content:space-between;gap:8px}
+.arInfo .arChip{flex:1;text-align:center}
+.arCalibrate{width:100%;padding:12px 14px;border-radius:14px;background:rgba(6,12,20,.78);color:white;border:1px solid rgba(255,255,255,.18);font-size:14px}
+.arHelp{text-align:center;color:rgba(255,255,255,.78);font-size:11px;text-shadow:0 1px 4px #000}
+
 </style>
 </head>
 <body>
@@ -261,6 +283,7 @@ input[type="range"]{width:100%;accent-color:var(--sun)}
 <section class="card">
   <button id="locBtn">📍 Utiliser ma position</button>
   <button class="secondary hidden" id="compassBtn">🧭 Activer la boussole</button>
+  <button class="arBtn hidden" id="arBtn">📷 Vue AR du soleil</button>
   <div class="status" id="status">Aucune position utilisée.</div>
 </section>
 
@@ -270,10 +293,37 @@ input[type="range"]{width:100%;accent-color:var(--sun)}
 </section>
 </main>
 
+<div class="arOverlay" id="arOverlay" aria-hidden="true">
+  <video class="arVideo" id="arVideo" autoplay playsinline muted></video>
+  <div class="arShade"></div>
+  <svg class="arCanvas" id="arCanvas" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <line id="arHorizon" x1="0" x2="100" y1="50" y2="50" stroke="rgba(255,255,255,.9)" stroke-width="0.35" stroke-dasharray="2 1.5"/>
+    <text id="arHorizonLabel" x="2" y="48.5" fill="white" font-size="2.7">Horizon 0°</text>
+    <g id="arAltGuides"></g>
+    <path id="arTrajectoryPath" d="" fill="none" stroke="rgba(255,216,77,.9)" stroke-width="0.65" stroke-linecap="round" stroke-dasharray="1.5 1.2"/>
+  </svg>
+  <div class="arCenterMark"></div>
+  <div class="arSun offscreen" id="arSun">☀️</div>
+  <div class="arTop">
+    <button class="arClose" id="arClose">✕ Fermer</button>
+    <div class="arChip" id="arDateTime">--</div>
+  </div>
+  <div class="arBottom">
+    <div class="arInfo">
+      <div class="arChip">Azimut<br><strong id="arAz">--°</strong></div>
+      <div class="arChip">Hauteur<br><strong id="arAlt">--°</strong></div>
+      <div class="arChip">Direction<br><strong id="arDir">--</strong></div>
+    </div>
+    <button class="arCalibrate" id="arCalibrate">⊕ Calibrer l’horizon</button>
+    <div class="arHelp" id="arHelp">Pointe le centre de l’écran vers l’horizon puis calibre si nécessaire.</div>
+  </div>
+</div>
+
 <script>
 const $=id=>document.getElementById(id);
 let sunriseAz=null,sunsetAz=null,heading=0,currentLat=null,currentLon=null;
 let selectedSunAz=null,selectedSunAlt=null,selectedDateTime=new Date();
+let deviceBeta=90, arActive=false, arStream=null, arHorizonOffset=0, orientationListening=false;
 
 const rad=d=>d*Math.PI/180,deg=r=>r*180/Math.PI,norm=a=>(a%360+360)%360;
 const pad=n=>String(n).padStart(2,"0");
@@ -387,8 +437,100 @@ function updateSelectedSun(){
 
   if(s.alt>-1)$("sunNow").classList.remove("hiddenSun");
   else $("sunNow").classList.add("hiddenSun");
-  updateCompass()
+  updateCompass();
+  if(arActive)updateAR()
 }
+
+function signedAngle(a){let d=norm(a);return d>180?d-360:d}
+function ensureOrientationListening(){
+  if(orientationListening)return;
+  window.addEventListener("deviceorientationabsolute",handleOrientation,true);
+  window.addEventListener("deviceorientation",handleOrientation,true);
+  orientationListening=true
+}
+async function requestOrientationPermission(){
+  if(typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){
+    const p=await DeviceOrientationEvent.requestPermission();
+    if(p!=="granted")throw new Error("orientation")
+  }
+  ensureOrientationListening()
+}
+function cameraPitch(){
+  // Portrait: beta ~90° lorsque la caméra regarde l'horizon.
+  return (deviceBeta-90)-arHorizonOffset
+}
+function arProject(az,alt){
+  const HFOV=64,VFOV=52;
+  const da=signedAngle(az-heading),de=alt-cameraPitch();
+  return{x:50+(da/HFOV)*100,y:50-(de/VFOV)*100,visible:Math.abs(da)<=HFOV*.62&&Math.abs(de)<=VFOV*.62}
+}
+function arTrajectoryPoints(){
+  if(currentLat===null)return [];
+  const rise=findSunEvent(selectedDateTime,currentLat,currentLon,true),set=findSunEvent(selectedDateTime,currentLat,currentLon,false);
+  if(!rise||!set)return [];
+  const pts=[];
+  for(let i=0;i<=48;i++){
+    const t=new Date(rise.time.getTime()+(set.time.getTime()-rise.time.getTime())*i/48);
+    const s=solarAltAz(t,currentLat,currentLon),p=arProject(s.az,s.alt);
+    pts.push({...p,alt:s.alt})
+  }
+  return pts
+}
+function updateAR(){
+  if(!arActive||selectedSunAz===null)return;
+  const p=arProject(selectedSunAz,selectedSunAlt);
+  const sun=$("arSun");
+  if(p.visible&&selectedSunAlt>-6){sun.classList.remove("offscreen");sun.style.left=p.x+"%";sun.style.top=p.y+"%"}
+  else sun.classList.add("offscreen");
+
+  const pitch=cameraPitch(),hY=50+(pitch/52)*100;
+  $("arHorizon").setAttribute("y1",hY);$("arHorizon").setAttribute("y2",hY);
+  $("arHorizonLabel").setAttribute("y",Math.max(3,Math.min(97,hY-1.5)));
+
+  const guides=$("arAltGuides");guides.innerHTML="";
+  [15,30,45,60].forEach(alt=>{
+    const y=50-((alt-pitch)/52)*100;
+    if(y>2&&y<98){
+      const ns="http://www.w3.org/2000/svg";
+      const line=document.createElementNS(ns,"line");line.setAttribute("x1","0");line.setAttribute("x2","100");line.setAttribute("y1",y);line.setAttribute("y2",y);line.setAttribute("stroke","rgba(255,255,255,.28)");line.setAttribute("stroke-width",".22");line.setAttribute("stroke-dasharray","1 2");guides.appendChild(line);
+      const text=document.createElementNS(ns,"text");text.setAttribute("x","2");text.setAttribute("y",Math.max(3,y-1));text.setAttribute("fill","rgba(255,255,255,.8)");text.setAttribute("font-size","2.4");text.textContent=alt+"°";guides.appendChild(text)
+    }
+  });
+
+  const pts=arTrajectoryPoints().filter(q=>q.x>-15&&q.x<115&&q.y>-15&&q.y<115);
+  let d="";let started=false;let last=null;
+  pts.forEach(q=>{
+    if(last&&Math.abs(q.x-last.x)>45){started=false}
+    d+=(started?" L":" M")+q.x.toFixed(2)+" "+q.y.toFixed(2);started=true;last=q
+  });
+  $("arTrajectoryPath").setAttribute("d",d);
+  $("arAz").textContent=Math.round(selectedSunAz)+"°";
+  $("arAlt").textContent=Math.round(selectedSunAlt)+"°";
+  $("arDir").textContent=compassName(selectedSunAz);
+  $("arDateTime").textContent=selectedDateTime.toLocaleDateString("fr-FR",{day:"2-digit",month:"short"})+" · "+fmtTime(selectedDateTime)
+}
+async function startAR(){
+  if(currentLat===null){$("status").textContent="Active d’abord ta position GPS.";return}
+  try{
+    await requestOrientationPermission();
+    arStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+    $("arVideo").srcObject=arStream;
+    arActive=true;$("arOverlay").classList.add("active");$("arOverlay").setAttribute("aria-hidden","false");
+    document.body.style.overflow="hidden";
+    updateAR()
+  }catch(e){
+    $("status").textContent="Vue AR impossible : autorise la caméra et l’orientation du téléphone dans Safari."
+  }
+}
+function stopAR(){
+  arActive=false;$("arOverlay").classList.remove("active");$("arOverlay").setAttribute("aria-hidden","true");document.body.style.overflow="";
+  if(arStream){arStream.getTracks().forEach(t=>t.stop());arStream=null;$("arVideo").srcObject=null}
+}
+function calibrateAR(){
+  // L'utilisateur pointe le centre vers l'horizon : on force alors le pitch courant à 0°.
+  arHorizonOffset=deviceBeta-90;updateAR();$("arHelp").textContent="Horizon calibré. Tu peux maintenant viser le ciel."
+}
+
 function updateCompass(){
   $("dial").style.transform=`rotate(${-heading}deg)`;
   $("trajectory").style.transform=`rotate(${-heading}deg)`;
@@ -402,7 +544,8 @@ function updateCompass(){
     $("sunNow").style.left=p.x+"%";
     $("sunNow").style.top=p.y+"%"
   }
-  $("heading").textContent=Math.round(heading)+"°"
+  $("heading").textContent=Math.round(heading)+"°";
+  if(arActive)updateAR()
 }
 async function resolvePlace(lat,lon){
   try{
@@ -437,7 +580,7 @@ function useLocation(){
     resetToNow();
     await resolvePlace(lat,lon);
     $("status").textContent=`Position trouvée · précision env. ${Math.round(accuracy)} m`;
-    $("compassBtn").classList.remove("hidden")
+    $("compassBtn").classList.remove("hidden");$("arBtn").classList.remove("hidden")
   },()=>{$("status").textContent="Position refusée ou indisponible."},
   {enableHighAccuracy:true,timeout:12000,maximumAge:60000})
 }
@@ -445,16 +588,14 @@ function handleOrientation(e){
   let h=null;
   if(typeof e.webkitCompassHeading==="number")h=e.webkitCompassHeading;
   else if(typeof e.alpha==="number")h=360-e.alpha;
-  if(h!==null&&!isNaN(h)){heading=norm(h);updateCompass()}
+  if(typeof e.beta==="number")deviceBeta=e.beta;
+  if(h!==null&&!isNaN(h))heading=norm(h);
+  updateCompass();
+  if(arActive)updateAR()
 }
 async function enableCompass(){
   try{
-    if(typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){
-      const p=await DeviceOrientationEvent.requestPermission();
-      if(p!=="granted")throw new Error()
-    }
-    window.addEventListener("deviceorientationabsolute",handleOrientation,true);
-    window.addEventListener("deviceorientation",handleOrientation,true);
+    await requestOrientationPermission();
     $("status").textContent="Boussole activée. Tiens le téléphone à plat."
   }catch(e){
     $("status").textContent="Boussole non autorisée. Vérifie les permissions du navigateur."
@@ -463,9 +604,12 @@ async function enableCompass(){
 
 $("locBtn").addEventListener("click",useLocation);
 $("compassBtn").addEventListener("click",enableCompass);
+$("arBtn").addEventListener("click",startAR);
+$("arClose").addEventListener("click",stopAR);
+$("arCalibrate").addEventListener("click",calibrateAR);
 $("nowBtn").addEventListener("click",resetToNow);
-$("datePicker").addEventListener("change",updateDayData);
-$("timeSlider").addEventListener("input",updateSelectedSun);
+$("datePicker").addEventListener("change",()=>{updateDayData();if(arActive)updateAR()});
+$("timeSlider").addEventListener("input",()=>{updateSelectedSun();if(arActive)updateAR()});
 
 resetToNow();
 

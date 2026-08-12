@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#07101d",
   "theme_color": "#08111f",
-  "description": "Repère la position et la trajectoire du soleil pour la date et l'heure de ton choix.",
+  "description": "Boussole solaire avec trajectoire, date, heure et vue caméra AR.",
   "icons": [
     {
       "src": "icon-192.png",
