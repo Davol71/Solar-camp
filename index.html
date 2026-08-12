@@ -139,6 +139,28 @@ button.secondary{margin-top:10px;background:#223047;color:white;border:1px solid
 .hidden{display:none}
 .note{font-size:13px;line-height:1.5;color:var(--muted)}
 .note strong{color:#e7edf5}
+
+.explorer{
+  margin-top:12px;padding:14px;border:1px solid var(--line);
+  border-radius:18px;background:rgba(255,255,255,.025)
+}
+.explorerTop{display:flex;justify-content:space-between;align-items:end;gap:12px}
+.explorer label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.dateInput{
+  width:100%;border:1px solid var(--line);background:#0c1624;color:var(--text);
+  border-radius:12px;padding:11px 12px;font:inherit;font-size:14px
+}
+.timeRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px}
+.selectedTime{font-size:24px;font-weight:850;color:var(--sun)}
+.rangeWrap{margin-top:7px}
+input[type="range"]{width:100%;accent-color:var(--sun)}
+.rangeTicks{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:3px}
+.nowBtn{
+  width:auto;padding:9px 12px;border-radius:12px;background:#223047;color:white;
+  border:1px solid var(--line);font-size:13px
+}
+.modeHint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35}
+
 </style>
 </head>
 <body>
@@ -172,11 +194,33 @@ button.secondary{margin-top:10px;background:#223047;color:white;border:1px solid
     <div class="left">
       <div class="sunIcon">☀️</div>
       <div>
-        <strong>Soleil maintenant</strong>
+        <strong id="sunLabel">Soleil maintenant</strong>
         <div class="small" id="sunAlt">Hauteur : --°</div>
       </div>
     </div>
     <div class="sunNowValue" id="sunNowValue">--°</div>
+  </div>
+
+  <div class="explorer">
+    <div class="explorerTop">
+      <div style="flex:1">
+        <label for="datePicker">Date</label>
+        <input class="dateInput" id="datePicker" type="date">
+      </div>
+      <button class="nowBtn" id="nowBtn" type="button">Maintenant</button>
+    </div>
+    <div class="timeRow">
+      <div>
+        <div class="label">Heure choisie</div>
+        <div class="selectedTime" id="selectedTime">--:--</div>
+      </div>
+      <div class="dir" id="selectedDir">--° · --</div>
+    </div>
+    <div class="rangeWrap">
+      <input id="timeSlider" type="range" min="0" max="1439" step="5" value="720">
+      <div class="rangeTicks"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span></div>
+    </div>
+    <div class="modeHint">Fais glisser l’heure pour voir où sera le soleil à ce moment précis.</div>
   </div>
 
   <div class="compass-stage">
@@ -207,7 +251,7 @@ button.secondary{margin-top:10px;background:#223047;color:white;border:1px solid
 
   <div class="legend">
     <span><i class="dot" style="background:var(--rise)"></i>Lever</span>
-    <span><i class="dot" style="background:var(--sun)"></i>Soleil actuel</span>
+    <span><i class="dot" style="background:var(--sun)"></i>Soleil choisi</span>
     <span><i class="dot" style="background:var(--set)"></i>Coucher</span>
   </div>
 
@@ -222,15 +266,17 @@ button.secondary{margin-top:10px;background:#223047;color:white;border:1px solid
 
 <section class="card note">
   <strong>Trajectoire :</strong> l’arc pointillé montre le chemin du soleil entre son lever et son coucher.
-  Le point ☀️ indique sa position actuelle sur cette trajectoire.
+  Le point ☀️ indique la position du soleil à l’heure choisie sur cette trajectoire.
 </section>
 </main>
 
 <script>
 const $=id=>document.getElementById(id);
-let sunriseAz=null,sunsetAz=null,heading=0,currentLat=null,currentLon=null,currentSunAz=null,currentSunAlt=null;
+let sunriseAz=null,sunsetAz=null,heading=0,currentLat=null,currentLon=null;
+let selectedSunAz=null,selectedSunAlt=null,selectedDateTime=new Date();
 
 const rad=d=>d*Math.PI/180,deg=r=>r*180/Math.PI,norm=a=>(a%360+360)%360;
+const pad=n=>String(n).padStart(2,"0");
 
 function julianDate(date){return date.getTime()/86400000+2440587.5}
 function solarCoords(date){
@@ -278,63 +324,86 @@ function findSunEvent(date,lat,lon,rising){
 }
 function compassName(a){return["N","NE","E","SE","S","SO","O","NO"][Math.round(norm(a)/45)%8]}
 function fmtTime(d){return d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
-
+function dateInputValue(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+function minutesOfDay(d){return d.getHours()*60+d.getMinutes()}
+function dateFromControls(){
+  const [y,m,d]=$("datePicker").value.split("-").map(Number);
+  const mins=Number($("timeSlider").value);
+  return new Date(y,m-1,d,Math.floor(mins/60),mins%60,0,0)
+}
 function polarPoint(az,r=39){
   const a=rad(az-90);
-  return {x:50+r*Math.cos(a),y:50+r*Math.sin(a)}
+  return{x:50+r*Math.cos(a),y:50+r*Math.sin(a)}
 }
-function drawTrajectory(lat,lon){
-  const now=new Date(),rise=findSunEvent(now,lat,lon,true),set=findSunEvent(now,lat,lon,false);
+function drawTrajectory(date,lat,lon){
+  const rise=findSunEvent(date,lat,lon,true),set=findSunEvent(date,lat,lon,false);
   if(!rise||!set){$("trajectoryPath").setAttribute("d","");return}
-  const points=[];
-  const steps=30;
+  const points=[],steps=36;
   for(let i=0;i<=steps;i++){
     const t=new Date(rise.time.getTime()+(set.time.getTime()-rise.time.getTime())*i/steps);
     const s=solarAltAz(t,lat,lon);
     const radius=39-(Math.max(0,s.alt)/90)*13;
-    const p=polarPoint(s.az,radius);
-    points.push(p)
+    points.push(polarPoint(s.az,radius))
   }
   let d="";
   points.forEach((p,i)=>{d+=(i===0?"M":" L")+p.x.toFixed(2)+" "+p.y.toFixed(2)});
   $("trajectoryPath").setAttribute("d",d)
 }
-
-function updateSunNow(){
+function updateDayData(){
   if(currentLat===null)return;
-  const s=solarAltAz(new Date(),currentLat,currentLon);
-  currentSunAz=s.az;currentSunAlt=s.alt;
+  selectedDateTime=dateFromControls();
+  const rise=findSunEvent(selectedDateTime,currentLat,currentLon,true);
+  const set=findSunEvent(selectedDateTime,currentLat,currentLon,false);
+  if(!rise||!set){
+    $("riseTime").textContent="--:--";$("setTime").textContent="--:--";
+    $("trajectoryPath").setAttribute("d","");
+    return
+  }
+  sunriseAz=rise.az;sunsetAz=set.az;
+  $("riseTime").textContent=fmtTime(rise.time);
+  $("setTime").textContent=fmtTime(set.time);
+  $("riseDeg").textContent=Math.round(rise.az)+"°";
+  $("setDeg").textContent=Math.round(set.az)+"°";
+  $("riseText").textContent=compassName(rise.az);
+  $("setText").textContent=compassName(set.az);
+  drawTrajectory(selectedDateTime,currentLat,currentLon);
+  updateSelectedSun()
+}
+function updateSelectedSun(){
+  if(currentLat===null)return;
+  selectedDateTime=dateFromControls();
+  const s=solarAltAz(selectedDateTime,currentLat,currentLon);
+  selectedSunAz=s.az;selectedSunAlt=s.alt;
+
+  $("selectedTime").textContent=fmtTime(selectedDateTime);
+  $("selectedDir").textContent=`${Math.round(s.az)}° · ${compassName(s.az)}`;
   $("sunNowValue").textContent=`${Math.round(s.az)}° · ${compassName(s.az)}`;
   $("sunAlt").textContent=`Hauteur : ${Math.round(s.alt)}°`;
 
-  if(s.alt>-1){
-    $("sunNow").classList.remove("hiddenSun");
-  }else{
-    $("sunNow").classList.add("hiddenSun");
-  }
+  const now=new Date();
+  const nearNow=sameDay(now,selectedDateTime)&&Math.abs(minutesOfDay(now)-minutesOfDay(selectedDateTime))<=7;
+  $("sunLabel").textContent=nearNow?"Soleil maintenant":"Soleil à l’heure choisie";
+
+  if(s.alt>-1)$("sunNow").classList.remove("hiddenSun");
+  else $("sunNow").classList.add("hiddenSun");
   updateCompass()
 }
-
 function updateCompass(){
   $("dial").style.transform=`rotate(${-heading}deg)`;
   $("trajectory").style.transform=`rotate(${-heading}deg)`;
-
   if(sunriseAz!==null){
     $("riseArrow").style.transform=`rotate(${norm(sunriseAz-heading)}deg)`;
-    $("setArrow").style.transform=`rotate(${norm(sunsetAz-heading)}deg)`;
+    $("setArrow").style.transform=`rotate(${norm(sunsetAz-heading)}deg)`
   }
-
-  if(currentSunAz!==null){
-    const radius=39-(Math.max(0,currentSunAlt)/90)*13;
-    const angle=norm(currentSunAz-heading);
-    const p=polarPoint(angle,radius);
+  if(selectedSunAz!==null){
+    const radius=39-(Math.max(0,selectedSunAlt)/90)*13;
+    const p=polarPoint(norm(selectedSunAz-heading),radius);
     $("sunNow").style.left=p.x+"%";
-    $("sunNow").style.top=p.y+"%";
+    $("sunNow").style.top=p.y+"%"
   }
-
   $("heading").textContent=Math.round(heading)+"°"
 }
-
 async function resolvePlace(lat,lon){
   try{
     const url=`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&localityLanguage=fr`;
@@ -344,48 +413,40 @@ async function resolvePlace(lat,lon){
     const locality=d.locality||d.city||d.principalSubdivision||"Lieu détecté";
     const region=d.principalSubdivision||d.countryName||"";
     $("placeName").textContent=locality;
-    $("placeMeta").textContent=region && region!==locality ? region : `${lat.toFixed(4)}, ${lon.toFixed(4)}`
+    $("placeMeta").textContent=region&&region!==locality?region:`${lat.toFixed(4)}, ${lon.toFixed(4)}`
   }catch(e){
     $("placeName").textContent="Position détectée";
     $("placeMeta").textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)}`
   }
 }
-
+function resetToNow(){
+  const now=new Date();
+  $("datePicker").value=dateInputValue(now);
+  $("timeSlider").value=minutesOfDay(now);
+  if(currentLat!==null)updateDayData();
+  else{
+    $("selectedTime").textContent=fmtTime(now)
+  }
+}
 function useLocation(){
   if(!navigator.geolocation){$("status").textContent="Géolocalisation indisponible.";return}
   $("status").textContent="Recherche de ta position…";
   navigator.geolocation.getCurrentPosition(async pos=>{
     const{latitude:lat,longitude:lon,accuracy}=pos.coords;
     currentLat=lat;currentLon=lon;
-
-    const today=new Date(),rise=findSunEvent(today,lat,lon,true),set=findSunEvent(today,lat,lon,false);
-    if(!rise||!set){$("status").textContent="Calcul impossible pour cette position.";return}
-
-    sunriseAz=rise.az;sunsetAz=set.az;
-    $("riseTime").textContent=fmtTime(rise.time);
-    $("setTime").textContent=fmtTime(set.time);
-    $("riseDeg").textContent=Math.round(rise.az)+"°";
-    $("setDeg").textContent=Math.round(set.az)+"°";
-    $("riseText").textContent=compassName(rise.az);
-    $("setText").textContent=compassName(set.az);
-
-    drawTrajectory(lat,lon);
-    updateSunNow();
+    resetToNow();
     await resolvePlace(lat,lon);
-
     $("status").textContent=`Position trouvée · précision env. ${Math.round(accuracy)} m`;
-    $("compassBtn").classList.remove("hidden");
+    $("compassBtn").classList.remove("hidden")
   },()=>{$("status").textContent="Position refusée ou indisponible."},
   {enableHighAccuracy:true,timeout:12000,maximumAge:60000})
 }
-
 function handleOrientation(e){
   let h=null;
   if(typeof e.webkitCompassHeading==="number")h=e.webkitCompassHeading;
   else if(typeof e.alpha==="number")h=360-e.alpha;
   if(h!==null&&!isNaN(h)){heading=norm(h);updateCompass()}
 }
-
 async function enableCompass(){
   try{
     if(typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){
@@ -402,7 +463,11 @@ async function enableCompass(){
 
 $("locBtn").addEventListener("click",useLocation);
 $("compassBtn").addEventListener("click",enableCompass);
-setInterval(updateSunNow,60000);
+$("nowBtn").addEventListener("click",resetToNow);
+$("datePicker").addEventListener("change",updateDayData);
+$("timeSlider").addEventListener("input",updateSelectedSun);
+
+resetToNow();
 
 if("serviceWorker"in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))
