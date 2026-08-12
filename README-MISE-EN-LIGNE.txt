@@ -13,3 +13,5 @@ Important :
 - Sur iPhone, si l’ancienne icône est installée, supprime-la puis ajoute de nouveau Azimut depuis Safari.
 
 NOUVEAUTÉ V7 : bouton « Mode terrain plein écran » après localisation GPS.
+
+NOUVEAUTÉ V8 : interface allégée avec un seul bouton principal au départ, puis actions avancées uniquement après activation.

@@ -325,6 +325,79 @@ body.focusMode #solarCard .sun-now{
   body.focusMode #solarCard .compass{width:min(62vw,72vh,590px)}
 }
 
+
+/* V8 — interface de contrôle allégée */
+.controlsCard{padding:18px}
+.primaryActionBtn{
+  width:100%;
+  border-radius:18px;
+  padding:17px 18px;
+  font-size:18px;
+  font-weight:900;
+  background:linear-gradient(135deg,#8ee3a1,#74d98f);
+  color:#06160a;
+  box-shadow:0 14px 34px rgba(0,0,0,.18)
+}
+.setupSummary{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+  margin-top:12px
+}
+.stateBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 11px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.035);
+  color:#d9e0ea;
+  font-size:12px;
+  font-weight:700
+}
+.stateBadge.ok{
+  background:rgba(142,227,161,.10);
+  color:var(--accent);
+  border-color:rgba(142,227,161,.28)
+}
+.stateBadge.pending{
+  color:var(--muted)
+}
+.quickActions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:14px
+}
+.quickActions .arBtn,
+.quickActions .focusBtn{
+  margin-top:0;
+  width:100%;
+  padding:14px 14px;
+  border-radius:16px;
+  font-size:16px;
+  font-weight:850;
+  box-shadow:none
+}
+.quickActions .arBtn{
+  background:linear-gradient(135deg,#ffd84d,#f5b942);
+  color:#221800
+}
+.quickActions .focusBtn{
+  background:#223047;
+  color:white;
+  border:1px solid var(--line)
+}
+.subtleStatus{
+  margin-top:12px;
+  min-height:18px;
+  color:var(--muted);
+  font-size:13px
+}
+body.focusMode .controlsCard{display:none!important}
+
 </style>
 </head>
 <body>
@@ -445,12 +518,20 @@ body.focusMode #solarCard .sun-now{
   <div class="heading">Direction du téléphone : <strong id="heading">--°</strong></div>
 </section>
 
-<section class="card">
-  <button id="locBtn">📍 Utiliser ma position</button>
-  <button class="secondary hidden" id="compassBtn">🧭 Activer la boussole</button>
-  <button class="arBtn hidden" id="arBtn">📷 Vue AR du soleil</button>
-  <button class="focusBtn hidden" id="focusBtn" type="button">🧭 Mode terrain plein écran</button>
-  <div class="status" id="status">Aucune position utilisée.</div>
+<section class="card controlsCard">
+  <button id="locBtn" class="primaryActionBtn">📍 Démarrer Azimut</button>
+
+  <div class="setupSummary hidden" id="setupSummary">
+    <span class="stateBadge" id="gpsState">📍 Position en attente</span>
+    <span class="stateBadge" id="compassState">🧭 Boussole en attente</span>
+  </div>
+
+  <div class="quickActions hidden" id="quickActions">
+    <button class="arBtn" id="arBtn" type="button">📷 Vue AR</button>
+    <button class="focusBtn" id="focusBtn" type="button">🧭 Mode terrain</button>
+  </div>
+
+  <div class="status subtleStatus" id="status">Touchez “Démarrer Azimut” pour commencer.</div>
 </section>
 
 <section class="card note">
@@ -462,7 +543,7 @@ body.focusMode #solarCard .sun-now{
     <button class="linkBtn" id="installFooterBtn" type="button">Installer Azimut</button>
     <button class="linkBtn" id="privacyBtn" type="button">Confidentialité</button>
   </div>
-  <div>Azimut · Boussole solaire · v1.1</div>
+  <div>Azimut · Boussole solaire · v1.2</div>
 </footer>
 </main>
 
@@ -546,6 +627,48 @@ const $=id=>document.getElementById(id);
 
 let deferredInstallPrompt=null;
 
+
+function updateControlsUI(){
+  const gpsState=$("gpsState"), compassState=$("compassState");
+
+  if(locationReady){
+    gpsState.textContent="📍 Position OK";
+    gpsState.className="stateBadge ok";
+  }else{
+    gpsState.textContent="📍 Position en attente";
+    gpsState.className="stateBadge pending";
+  }
+
+  if(compassReady){
+    compassState.textContent="🧭 Boussole active";
+    compassState.className="stateBadge ok";
+  }else{
+    compassState.textContent=locationReady ? "🧭 Boussole à activer" : "🧭 Boussole en attente";
+    compassState.className="stateBadge pending";
+  }
+
+  if(!locationReady){
+    $("locBtn").classList.remove("hidden");
+    $("locBtn").textContent="📍 Démarrer Azimut";
+    $("setupSummary").classList.add("hidden");
+    $("quickActions").classList.add("hidden");
+  }else if(!compassReady){
+    $("locBtn").classList.remove("hidden");
+    $("locBtn").textContent="🧭 Activer la boussole";
+    $("setupSummary").classList.remove("hidden");
+    $("quickActions").classList.add("hidden");
+  }else{
+    $("locBtn").classList.add("hidden");
+    $("setupSummary").classList.remove("hidden");
+    $("quickActions").classList.remove("hidden");
+  }
+}
+
+function handlePrimaryAction(){
+  if(!locationReady) useLocation();
+  else if(!compassReady) enableCompass();
+}
+
 function isStandalone(){
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true
 }
@@ -586,6 +709,7 @@ window.addEventListener("appinstalled",()=>refreshInstallUI());
 
 let sunriseAz=null,sunsetAz=null,heading=0,currentLat=null,currentLon=null;
 let selectedSunAz=null,selectedSunAlt=null,selectedDateTime=new Date();
+let locationReady=false,compassReady=false;
 let deviceBeta=90, arActive=false, arStream=null, arHorizonOffset=0, orientationListening=false;
 
 const rad=d=>d*Math.PI/180,deg=r=>r*180/Math.PI,norm=a=>(a%360+360)%360;
@@ -717,7 +841,9 @@ async function requestOrientationPermission(){
     const p=await DeviceOrientationEvent.requestPermission();
     if(p!=="granted")throw new Error("orientation")
   }
-  ensureOrientationListening()
+  ensureOrientationListening();
+  compassReady=true;
+  updateControlsUI()
 }
 function cameraPitch(){
   // Portrait: beta ~90° lorsque la caméra regarde l'horizon.
@@ -777,6 +903,7 @@ async function startAR(){
   if(currentLat===null){$("status").textContent="Active d’abord ta position GPS.";return}
   try{
     await requestOrientationPermission();
+    compassReady=true; updateControlsUI();
     arStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
     $("arVideo").srcObject=arStream;
     arActive=true;$("arOverlay").classList.add("active");$("arOverlay").setAttribute("aria-hidden","false");
@@ -853,6 +980,7 @@ async function enterFocusMode(){
   }
   try{
     await requestOrientationPermission();
+    compassReady=true; updateControlsUI();
   }catch(e){
     // Le mode reste utilisable même sans boussole active.
   }
@@ -878,13 +1006,15 @@ function useLocation(){
   navigator.geolocation.getCurrentPosition(async pos=>{
     const{latitude:lat,longitude:lon,accuracy}=pos.coords;
     currentLat=lat;currentLon=lon;
+    locationReady=true;
+    updateControlsUI();
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("focusMode"))exitFocusMode()});
 
 resetToNow();
     await resolvePlace(lat,lon);
     $("status").textContent=`Position trouvée · précision env. ${Math.round(accuracy)} m`;
-    $("compassBtn").classList.remove("hidden");$("arBtn").classList.remove("hidden");$("focusBtn").classList.remove("hidden")
-  },()=>{$("status").textContent="Position refusée ou indisponible."},
+    updateControlsUI()
+  },()=>{$("status").textContent="Position refusée ou indisponible."; updateControlsUI();},
   {enableHighAccuracy:true,timeout:12000,maximumAge:60000})
 }
 function handleOrientation(e){
@@ -901,7 +1031,8 @@ async function enableCompass(){
     await requestOrientationPermission();
     $("status").textContent="Boussole activée. Tiens le téléphone à plat."
   }catch(e){
-    $("status").textContent="Boussole non autorisée. Vérifie les permissions du navigateur."
+    $("status").textContent="Boussole non autorisée. Vérifie les permissions du navigateur.";
+    updateControlsUI()
   }
 }
 
@@ -916,9 +1047,9 @@ document.querySelectorAll(".modalBackdrop").forEach(backdrop=>backdrop.addEventL
 }));
 setTimeout(()=>$("splash")?.classList.add("hide"),750);
 refreshInstallUI();
+updateControlsUI();
 
-$("locBtn").addEventListener("click",useLocation);
-$("compassBtn").addEventListener("click",enableCompass);
+$("locBtn").addEventListener("click",handlePrimaryAction);
 $("arBtn").addEventListener("click",startAR);
 $("focusBtn").addEventListener("click",enterFocusMode);
 $("focusExit").addEventListener("click",exitFocusMode);

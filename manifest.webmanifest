@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#07101d",
   "theme_color": "#08111f",
-  "description": "Azimut — boussole solaire avec trajectoire, date, heure, mode terrain et vue AR.",
+  "description": "Azimut — boussole solaire avec interface allégée, trajectoire, date, heure, mode terrain et vue AR.",
   "icons": [
     {
       "src": "icon-192.png",
