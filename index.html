@@ -10,6 +10,7 @@
 <meta name="application-name" content="Azimut">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="description" content="Azimut — boussole solaire avec trajectoire, date, heure et vue AR.">
+<meta name="azimut-build" content="8.1">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -543,7 +544,7 @@ body.focusMode .controlsCard{display:none!important}
     <button class="linkBtn" id="installFooterBtn" type="button">Installer Azimut</button>
     <button class="linkBtn" id="privacyBtn" type="button">Confidentialité</button>
   </div>
-  <div>Azimut · Boussole solaire · v1.2</div>
+  <div>Azimut · Boussole solaire · v1.2.1</div>
 </footer>
 </main>
 
@@ -1061,8 +1062,28 @@ $("timeSlider").addEventListener("input",()=>{updateSelectedSun();if(arActive)up
 
 resetToNow();
 
-if("serviceWorker"in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))
+if("serviceWorker" in navigator){
+  let refreshing = false;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
+  window.addEventListener("load", async () => {
+    try{
+      const registration = await navigator.serviceWorker.register("./sw.js?v=8.1", {
+        updateViaCache: "none"
+      });
+
+      // Vérifie immédiatement s'il existe une nouvelle version.
+      await registration.update();
+
+      // Puis revérifie périodiquement si l'app reste ouverte.
+      setInterval(() => registration.update().catch(() => {}), 15 * 60 * 1000);
+    }catch(e){}
+  });
 }
 </script>
 </body>
